@@ -97,6 +97,8 @@ export default function App() {
           const baseJobs = JOBS_DATA.filter((j) => !existingIds.has(j.id));
           setJobs([...firestoreJobs, ...baseJobs]);
         }
+      }, (err) => {
+        console.warn('Firestore onSnapshot listener error (falling back to built-in jobs dataset):', err);
       });
 
       return () => unsub();
