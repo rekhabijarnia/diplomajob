@@ -1,0 +1,120 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Registered diploma engineer candidate profile",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email", "description": "User email address" },
+        "displayName": { "type": "string", "description": "Full name of the student or recruiter" },
+        "photoURL": { "type": "string", "description": "Avatar profile image URL" },
+        "role": { "type": "string", "enum": ["student", "employer", "admin"], "description": "Portal user role" },
+        "phone": { "type": "string", "description": "Contact phone or WhatsApp number" },
+        "college": { "type": "string", "description": "Polytechnic institute name" },
+        "board": { "type": "string", "description": "Technical education board (MSBTE, BTEUP, etc.)" },
+        "branch": { "type": "string", "description": "Diploma branch stream" },
+        "rollNo": { "type": "string", "description": "Diploma seat or roll number" },
+        "natsEnrolled": { "type": "boolean", "description": "Whether registered on NATS portal" },
+        "natsEnrollmentNumber": { "type": "string", "description": "16-digit official NATS student ID" },
+        "aggregatePercentage": { "type": "string", "description": "Diploma aggregate percentage" },
+        "passingYear": { "type": "string", "description": "Passing out year" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Account creation timestamp" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "JobApplication": {
+      "title": "JobApplication",
+      "description": "Application submitted for a diploma job or apprenticeship",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique application ID" },
+        "jobId": { "type": "string", "description": "Reference job ID" },
+        "jobTitle": { "type": "string", "description": "Title of the vacancy" },
+        "company": { "type": "string", "description": "Hiring company name" },
+        "userId": { "type": "string", "description": "Applicant Firebase Auth UID" },
+        "applicantName": { "type": "string", "description": "Full name of candidate" },
+        "applicantEmail": { "type": "string", "format": "email", "description": "Candidate email" },
+        "applicantPhone": { "type": "string", "description": "Candidate phone number" },
+        "branch": { "type": "string", "description": "Diploma branch" },
+        "rollNo": { "type": "string", "description": "Board roll number" },
+        "passingYear": { "type": "string", "description": "Passing out year" },
+        "percentage": { "type": "string", "description": "Diploma marks aggregate" },
+        "natsId": { "type": "string", "description": "Optional NATS enrollment number" },
+        "appliedAt": { "type": "string", "format": "date-time", "description": "Submission timestamp" },
+        "status": { "type": "string", "enum": ["submitted", "under_review", "shortlisted", "interview_scheduled"], "description": "Status of application" }
+      },
+      "required": ["jobId", "jobTitle", "company", "userId", "applicantName", "applicantEmail", "branch", "appliedAt"]
+    },
+    "PostedJob": {
+      "title": "PostedJob",
+      "description": "Job or apprenticeship vacancy posted by verified recruiter",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Job unique identifier" },
+        "title": { "type": "string", "description": "Designation/Job Title" },
+        "company": { "type": "string", "description": "Company name" },
+        "branch": { "type": "string", "description": "Target diploma branch" },
+        "branchSlug": { "type": "string", "description": "Branch slug" },
+        "location": { "type": "string", "description": "Plant or city location" },
+        "salary": { "type": "string", "description": "Salary or stipend package" },
+        "type": { "type": "string", "enum": ["job", "apprentice", "internship"], "description": "Vacancy category" },
+        "description": { "type": "string", "description": "Job requirements and role details" },
+        "minPercentage": { "type": "string", "description": "Minimum percentage cutoff" },
+        "openings": { "type": "string", "description": "Number of available vacancies" },
+        "postedBy": { "type": "string", "description": "Recruiter UID" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Posting timestamp" }
+      },
+      "required": ["id", "title", "company", "branch", "location", "salary", "type", "description", "postedBy"]
+    },
+    "FraudReport": {
+      "title": "FraudReport",
+      "description": "Scam or unauthorized fee demand report submitted by student",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Report ID" },
+        "userId": { "type": "string", "description": "Reporter UID" },
+        "companyName": { "type": "string", "description": "Reported company or recruiter agency" },
+        "feeDemanded": { "type": "string", "description": "Amount demanded" },
+        "details": { "type": "string", "description": "Incident details" },
+        "reportedAt": { "type": "string", "format": "date-time", "description": "Timestamp of report" },
+        "status": { "type": "string", "enum": ["pending", "investigating", "blacklisted"], "description": "Resolution status" }
+      },
+      "required": ["companyName", "feeDemanded", "details", "reportedAt"]
+    },
+    "SavedJob": {
+      "title": "SavedJob",
+      "description": "User bookmarked job opening",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Bookmark ID" },
+        "userId": { "type": "string", "description": "Firebase Auth UID" },
+        "jobId": { "type": "string", "description": "Bookmarked job ID" },
+        "savedAt": { "type": "string", "format": "date-time", "description": "Timestamp" }
+      },
+      "required": ["userId", "jobId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile document keyed by auth UID"
+    },
+    "/applications/{applicationId}": {
+      "schema": "JobApplication",
+      "description": "Candidate job applications"
+    },
+    "/postedJobs/{jobId}": {
+      "schema": "PostedJob",
+      "description": "Employer posted diploma job vacancies"
+    },
+    "/fraudReports/{reportId}": {
+      "schema": "FraudReport",
+      "description": "Reports against fraudulent middleman recruiter fee demands"
+    },
+    "/savedJobs/{savedJobId}": {
+      "schema": "SavedJob",
+      "description": "User bookmarked jobs"
+    }
+  }
+}

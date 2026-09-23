@@ -1,0 +1,7 @@
+{
+  "name": "DiplomaJob - Polytechnic & Diploma Career Portal",
+  "description": "India's #1 career portal for polytechnic diploma engineers, featuring verified fresher jobs, NATS/BOAT apprenticeships, stipend calculators, and corporate walk-in drives.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
