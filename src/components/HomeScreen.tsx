@@ -60,6 +60,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               <span className="material-symbols-outlined text-[16px]">verified</span>
               AICTE, MSBTE & NATS Aligned
             </span>
+            <button
+              type="button"
+              onClick={onOpenAuth}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/15 hover:bg-primary/25 text-primary text-xs font-bold border border-primary/30 transition-all hover:scale-102"
+            >
+              <span className="material-symbols-outlined text-[16px]">account_circle</span>
+              <span>Candidate Sign In</span>
+            </button>
           </div>
 
           {/* Main Typography Hierarchy */}

@@ -323,9 +323,10 @@ export const Header: React.FC<HeaderProps> = ({
           ) : (
             <button
               onClick={onOpenAuth}
-              className="inline-flex items-center px-3 sm:px-4 py-1.5 bg-primary hover:bg-primary-container text-white font-bold text-xs rounded-xl transition-all shadow-sm"
+              className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 bg-primary hover:bg-primary-container text-white font-bold text-xs rounded-xl transition-all shadow-sm shrink-0"
             >
-              Sign In
+              <span className="material-symbols-outlined text-[16px]">account_circle</span>
+              <span>Sign In</span>
             </button>
           )}
 
@@ -344,7 +345,52 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="xl:hidden bg-surface-container-low border-b border-outline-variant/30 px-4 py-4 space-y-2 animate-in slide-in-from-top-2 duration-150">
+        <div className="xl:hidden bg-surface-container-low border-b border-outline-variant/30 px-4 py-4 space-y-3 animate-in slide-in-from-top-2 duration-150">
+          {/* Mobile Sign In / Profile Card */}
+          <div className="pb-2 border-b border-outline-variant/20">
+            {currentUser ? (
+              <div className="flex items-center justify-between p-3 bg-surface-container rounded-xl">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  {currentUser.photoURL ? (
+                    <img
+                      src={currentUser.photoURL}
+                      alt={currentUser.displayName || 'User'}
+                      className="w-8 h-8 rounded-full object-cover ring-2 ring-primary/40 shrink-0"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs shrink-0">
+                      {(currentUser.displayName || currentUser.email || 'U')[0].toUpperCase()}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-on-surface truncate">
+                      {currentUser.displayName || 'Logged In Candidate'}
+                    </p>
+                    <p className="text-[10px] text-on-surface-variant truncate">{currentUser.email}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="px-2.5 py-1 text-xs font-bold text-error bg-error/10 hover:bg-error/20 rounded-lg shrink-0 ml-2"
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  onOpenAuth();
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full py-2.5 px-4 bg-primary hover:bg-primary-container text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all"
+              >
+                <span className="material-symbols-outlined text-[18px]">account_circle</span>
+                <span>Sign In / Candidate Login</span>
+              </button>
+            )}
+          </div>
           <div className="grid grid-cols-2 gap-2 pb-3 border-b border-outline-variant/20">
             <button
               type="button"

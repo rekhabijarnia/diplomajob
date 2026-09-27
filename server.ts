@@ -14,9 +14,12 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
+// Gemini API Key: uses environment variable or configured API key
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AQ.Ab8RN6JPZFqynw6ThuYre594oUfv4lWZPIw6xj5h84AEBRIUKA';
+
 // Initialize Gemini API client as specified in skill guidelines
 const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
+  apiKey: GEMINI_API_KEY,
   httpOptions: {
     headers: {
       'User-Agent': 'aistudio-build',
@@ -43,7 +46,7 @@ Communication style:
 // Helper: sleep
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// Helper: check if error is 429 / RESOURCE_EXHAUSTED
+// Helper: check if error is 429 / RESOURCE_EXHAUSTED or temporary 503 spike
 function isQuotaExhaustedError(err: any): boolean {
   if (!err) return false;
   const str = String(err?.message || err?.status || err?.code || JSON.stringify(err));
@@ -51,8 +54,13 @@ function isQuotaExhaustedError(err: any): boolean {
     str.includes('429') ||
     str.includes('RESOURCE_EXHAUSTED') ||
     str.includes('quota') ||
+    str.includes('503') ||
+    str.includes('UNAVAILABLE') ||
+    str.includes('high demand') ||
     err?.status === 429 ||
-    err?.code === 429
+    err?.code === 429 ||
+    err?.status === 503 ||
+    err?.code === 503
   );
 }
 
@@ -142,15 +150,10 @@ app.post('/api/chat', async (req, res) => {
       return res.status(400).json({ error: 'Messages array is required' });
     }
 
-    // Recommended active models from skill:
-    // - Complex: gemini-3.1-pro-preview
-    // - Fast: gemini-3.1-flash-lite
-    // - General: gemini-3.8-flash
-    let modelName = 'gemini-3.8-flash';
+    // Use gemini-3.1-flash-lite for instant, zero-delay responses
+    let modelName = 'gemini-3.1-flash-lite';
     if (modelType === 'complex') {
       modelName = 'gemini-3.1-pro-preview';
-    } else if (modelType === 'fast') {
-      modelName = 'gemini-3.1-flash-lite';
     }
 
     // Prepare contents formatted for Gemini
