@@ -28,7 +28,7 @@ import { SearchGroundingModal } from './components/SearchGroundingModal';
 import { MapsGroundingModal } from './components/MapsGroundingModal';
 
 import { JOBS_DATA, Job } from './data/portalData';
-import { db, collection, onSnapshot, auth } from './firebase';
+import { db, collection, onSnapshot, auth, doc, getDoc } from './firebase';
 
 export default function App() {
   // Navigation State
@@ -56,8 +56,31 @@ export default function App() {
 
   // User & Portal State
   const [userRole, setUserRole] = useState<'student' | 'employer' | 'admin'>('student');
-  const [userName, setUserName] = useState('Rahul Shinde (Diploma CS)');
+  const [userName, setUserName] = useState('Diploma Candidate');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Listen to Google Auth changes
+  useEffect(() => {
+    const unsub = auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        setUserName(user.displayName || user.email || 'Candidate');
+        try {
+          const userSnap = await getDoc(doc(db, 'users', user.uid));
+          if (userSnap.exists()) {
+            const data = userSnap.data();
+            if (data.role) {
+              setUserRole(data.role);
+            }
+          }
+        } catch (e) {
+          console.warn('Could not read user profile:', e);
+        }
+      } else {
+        setUserName('Diploma Candidate');
+      }
+    });
+    return () => unsub();
+  }, []);
 
   // Real-time Firestore sync for recruiter jobs
   useEffect(() => {
