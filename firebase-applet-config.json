@@ -1,12 +1,10 @@
 {
-  "projectId": "powerful-diagram-h53bd",
-  "appId": "1:674619924417:web:f79a548f80662114b29940",
-  "apiKey": "AIzaSyCQx7g6SBf1RYBA1IAGV_v-lQDQYnPJFHQ",
-  "authDomain": "powerful-diagram-h53bd.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-diplomajobpolyte-ac5e6e06-2224-46ad-85bf-ed28f76e77dd",
-  "storageBucket": "powerful-diagram-h53bd.firebasestorage.app",
-  "messagingSenderId": "674619924417",
-  "measurementId": "",
-  "oAuthClientId": "674619924417-iq74gj7ntsfd4lbgf44qom4efrhdd0d5.apps.googleusercontent.com",
-  "recaptchaSiteKey": ""
+  "projectId": "diplomajob-f69a8",
+  "appId": "1:64884192794:web:042005d84e553cb60e03a3",
+  "apiKey": "AIzaSyBRI5-ycEvkxXiqF-y3mZqHf9xqHL-rPjA",
+  "authDomain": "diplomajob-f69a8.firebaseapp.com",
+  "firestoreDatabaseId": "",
+  "storageBucket": "diplomajob-f69a8.firebasestorage.app",
+  "messagingSenderId": "64884192794",
+  "measurementId": "G-ZW4J4YT6RF"
 }
