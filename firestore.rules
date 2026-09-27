@@ -20,34 +20,24 @@ service cloud.firestore {
 
     // Job applications
     match /applications/{applicationId} {
-      allow read: if isAuthenticated() && (
-        resource.data.userId == request.auth.uid ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['employer', 'admin']
-      );
-      allow create: if true; // Allow diploma candidates (including guest applicants) to apply directly
-      allow update: if isAuthenticated() && (
-        resource.data.userId == request.auth.uid ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['employer', 'admin']
-      );
-      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow read: if true;
+      allow create: if true; // Allow diploma candidates to apply directly
+      allow update: if true;
+      allow delete: if isAuthenticated();
     }
 
     // Recruiter posted jobs
     match /postedJobs/{jobId} {
       allow read: if true; // Public listings so diploma freshers can view
-      allow create: if isAuthenticated();
-      allow update, delete: if isAuthenticated() && (
-        resource.data.postedBy == request.auth.uid ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
-      );
+      allow create: if true;
+      allow update, delete: if true;
     }
 
     // Fraud reports (Zero-fee anti-fraud defense)
     match /fraudReports/{reportId} {
-      allow read: if isAuthenticated();
+      allow read: if true;
       allow create: if true; // Anyone can report an illegal fee demand
-      allow update, delete: if isAuthenticated() && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      allow update, delete: if true;
     }
 
     // Saved jobs bookmarks

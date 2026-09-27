@@ -13,6 +13,8 @@ import { ApprenticeshipsScreen } from './components/ApprenticeshipsScreen';
 import { CompaniesScreen } from './components/CompaniesScreen';
 import { ResumeBuilderScreen } from './components/ResumeBuilderScreen';
 import { CareerResourcesScreen } from './components/CareerResourcesScreen';
+import { UserDashboardScreen } from './components/UserDashboardScreen';
+import { AdminPanelScreen } from './components/AdminPanelScreen';
 
 import { QuickApplyModal } from './components/QuickApplyModal';
 import { JobDetailsModal } from './components/JobDetailsModal';
@@ -41,6 +43,7 @@ export default function App() {
   const [savedJobIds, setSavedJobIds] = useState<string[]>(['job-1', 'job-3']);
   const [activeJobDetails, setActiveJobDetails] = useState<Job | null>(null);
   const [activeApplyJob, setActiveApplyJob] = useState<Job | null>(null);
+  const [pendingApplyJob, setPendingApplyJob] = useState<Job | null>(null);
 
   // Modals Visibility
   const [isReportFraudOpen, setIsReportFraudOpen] = useState(false);
@@ -55,6 +58,7 @@ export default function App() {
   const [isPlantLocatorOpen, setIsPlantLocatorOpen] = useState(false);
 
   // User & Portal State
+  const [currentUser, setCurrentUser] = useState<any>(auth.currentUser);
   const [userRole, setUserRole] = useState<'student' | 'employer' | 'admin'>('student');
   const [userName, setUserName] = useState('Diploma Candidate');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -62,6 +66,7 @@ export default function App() {
   // Listen to Google Auth changes
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async (user) => {
+      setCurrentUser(user);
       if (user) {
         setUserName(user.displayName || user.email || 'Candidate');
         try {
@@ -166,6 +171,11 @@ export default function App() {
   };
 
   const handleNavigate = (screen: ScreenType) => {
+    if (screen === 'admin-panel' && !currentUser && !auth.currentUser) {
+      setIsAuthOpen(true);
+      showToast('Please sign in to access the Admin Panel');
+      return;
+    }
     setCurrentScreen(screen);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -204,6 +214,21 @@ export default function App() {
     showToast(`Applied successfully to ${company} for ${jobTitle}!`);
   };
 
+  const handleApplyClick = (job: Job) => {
+    if (!currentUser && !auth.currentUser) {
+      setPendingApplyJob(job);
+      setIsAuthOpen(true);
+      showToast(`Please sign in to apply for ${job.title}`);
+    } else {
+      setActiveApplyJob(job);
+    }
+  };
+
+  const handleDeleteJob = (jobId: string) => {
+    setJobs((prev) => prev.filter((j) => j.id !== jobId));
+    showToast('Job posting removed from active listings');
+  };
+
   const unreadCount = notifications.filter((n) => n.unread).length;
 
   return (
@@ -219,6 +244,7 @@ export default function App() {
       {/* Main Top Navigation Header */}
       <Header
         currentScreen={currentScreen}
+        currentUser={currentUser}
         onNavigate={handleNavigate}
         onOpenReportFraud={() => setIsReportFraudOpen(true)}
         onOpenAuth={() => setIsAuthOpen(true)}
@@ -230,8 +256,18 @@ export default function App() {
         unreadCount={unreadCount}
         userRole={userRole}
         onChangeRole={(newRole) => {
+          if ((newRole === 'admin' || newRole === 'employer') && !currentUser && !auth.currentUser) {
+            setIsAuthOpen(true);
+            showToast('Sign in required to access Admin Panel');
+            return;
+          }
           setUserRole(newRole);
-          showToast(`Switched view to ${newRole === 'student' ? 'Student Portal' : newRole === 'employer' ? 'Employer Dashboard' : 'Admin Panel'}`);
+          if (newRole === 'admin' || newRole === 'employer') {
+            setCurrentScreen('admin-panel');
+          } else {
+            setCurrentScreen('user-dashboard');
+          }
+          showToast(`Switched view to ${newRole === 'student' ? 'Candidate User Page' : 'Admin & Recruiter Control Panel'}`);
         }}
         savedJobsCount={savedJobIds.length}
       />
@@ -240,18 +276,30 @@ export default function App() {
       <main className="flex-1 pt-24 sm:pt-28">
         {/* Role Banner if employer or admin */}
         {userRole !== 'student' && (
-          <div className="bg-primary/20 border-b border-primary/30 text-on-surface px-4 py-2.5 text-xs font-semibold">
+          <div className="bg-amber-500/15 border-b border-amber-500/30 text-on-surface px-4 py-2.5 text-xs font-semibold">
             <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
               <span className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[18px] text-primary">domain</span>
-                <span>Active Mode: <strong>{userRole === 'employer' ? 'Recruiter & Employer Dashboard' : 'State Technical Board / Admin Panel'}</strong></span>
+                <span className="material-symbols-outlined text-[18px] text-amber-400">admin_panel_settings</span>
+                <span>Active Mode: <strong className="text-amber-300">{userRole === 'employer' ? 'Recruiter & Employer Dashboard' : 'State Technical Board / Admin Panel'}</strong></span>
               </span>
-              <button
-                onClick={() => setUserRole('student')}
-                className="text-primary hover:underline font-bold"
-              >
-                Switch back to Student Mode
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setCurrentScreen('admin-panel')}
+                  className="text-amber-400 hover:underline font-bold"
+                >
+                  Open Admin Panel
+                </button>
+                <span className="text-outline-variant/40">|</span>
+                <button
+                  onClick={() => {
+                    setUserRole('student');
+                    setCurrentScreen('user-dashboard');
+                  }}
+                  className="text-primary hover:underline font-bold"
+                >
+                  Open Candidate User Page
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -310,7 +358,7 @@ export default function App() {
           <HomeScreen
             onSelectBranch={handleSelectBranch}
             onSelectCompany={handleSelectCompany}
-            onApplyJob={(job) => setActiveApplyJob(job)}
+            onApplyJob={(job) => handleApplyClick(job)}
             onViewJobDetails={(job) => setActiveJobDetails(job)}
             onNavigate={handleNavigate}
             onOpenReportFraud={() => setIsReportFraudOpen(true)}
@@ -326,21 +374,21 @@ export default function App() {
             initialCompany={selectedCompanyFilter}
             savedJobIds={savedJobIds}
             onToggleSaveJob={handleToggleSaveJob}
-            onApplyJob={(job) => setActiveApplyJob(job)}
+            onApplyJob={(job) => handleApplyClick(job)}
             onViewJobDetails={(job) => setActiveJobDetails(job)}
           />
         )}
 
         {currentScreen === 'internships' && (
           <InternshipsScreen
-            onApplyJob={(job) => setActiveApplyJob(job)}
+            onApplyJob={(job) => handleApplyClick(job)}
             onViewJobDetails={(job) => setActiveJobDetails(job)}
           />
         )}
 
         {currentScreen === 'apprenticeships' && (
           <ApprenticeshipsScreen
-            onApplyJob={(job) => setActiveApplyJob(job)}
+            onApplyJob={(job) => handleApplyClick(job)}
             onViewJobDetails={(job) => setActiveJobDetails(job)}
             onCheckEligibility={() => setIsNatsEligibilityOpen(true)}
           />
@@ -360,6 +408,29 @@ export default function App() {
         {currentScreen === 'resume-builder' && <ResumeBuilderScreen />}
 
         {currentScreen === 'career-resources' && <CareerResourcesScreen />}
+
+        {currentScreen === 'user-dashboard' && (
+          <UserDashboardScreen
+            onNavigate={handleNavigate}
+            onApplyJob={(job) => handleApplyClick(job)}
+            onViewJobDetails={(job) => setActiveJobDetails(job)}
+            onOpenReportFraud={() => setIsReportFraudOpen(true)}
+            onOpenNatsEligibility={() => setIsNatsEligibilityOpen(true)}
+            savedJobIds={savedJobIds}
+            jobs={jobs}
+            onToggleSaveJob={handleToggleSaveJob}
+          />
+        )}
+
+        {currentScreen === 'admin-panel' && (
+          <AdminPanelScreen
+            jobs={jobs}
+            onDeleteJob={handleDeleteJob}
+            onOpenPostJob={() => setIsPostJobOpen(true)}
+            onNavigate={handleNavigate}
+            onOpenAuth={() => setIsAuthOpen(true)}
+          />
+        )}
       </main>
 
       {/* Global Footer */}
@@ -390,14 +461,16 @@ export default function App() {
       {/* Modals */}
       <QuickApplyModal
         job={activeApplyJob}
+        currentUser={currentUser}
         onClose={() => setActiveApplyJob(null)}
         onSuccess={handleApplySuccess}
+        onOpenAuth={() => setIsAuthOpen(true)}
       />
 
       <JobDetailsModal
         job={activeJobDetails}
         onClose={() => setActiveJobDetails(null)}
-        onApply={(job) => setActiveApplyJob(job)}
+        onApply={(job) => handleApplyClick(job)}
         isSaved={activeJobDetails ? savedJobIds.includes(activeJobDetails.id) : false}
         onToggleSave={handleToggleSaveJob}
       />
@@ -409,11 +482,24 @@ export default function App() {
 
       <AuthModal
         isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-        onLoginSuccess={(name, role) => {
+        onClose={() => {
+          setIsAuthOpen(false);
+          setPendingApplyJob(null);
+        }}
+        onLoginSuccess={(name: string, role: 'student' | 'employer', userObj?: any) => {
           setUserName(name);
           setUserRole(role);
-          showToast(`Welcome, ${name}! Signed in via Firebase.`);
+          if (userObj) {
+            setCurrentUser(userObj);
+          }
+          if (pendingApplyJob) {
+            const targetJob = pendingApplyJob;
+            setPendingApplyJob(null);
+            setActiveApplyJob(targetJob);
+            showToast(`Welcome ${name}! Now applying for ${targetJob.title}...`);
+          } else {
+            showToast(`Welcome, ${name}! Signed in successfully.`);
+          }
         }}
       />
 

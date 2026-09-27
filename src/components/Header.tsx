@@ -9,10 +9,13 @@ export type ScreenType =
   | 'companies'
   | 'resume-builder'
   | 'career-resources'
-  | 'post-a-job';
+  | 'post-a-job'
+  | 'user-dashboard'
+  | 'admin-panel';
 
 interface HeaderProps {
   currentScreen: ScreenType;
+  currentUser?: any;
   onNavigate: (screen: ScreenType) => void;
   onOpenReportFraud: () => void;
   onOpenAuth: () => void;
@@ -29,6 +32,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({
   currentScreen,
+  currentUser: propUser,
   onNavigate,
   onOpenReportFraud,
   onOpenAuth,
@@ -44,11 +48,17 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(propUser || auth.currentUser);
+
+  useEffect(() => {
+    if (propUser !== undefined) {
+      setCurrentUser(propUser);
+    }
+  }, [propUser]);
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged((user) => {
-      setCurrentUser(user);
+      if (user) setCurrentUser(user);
     });
     return () => unsub();
   }, []);
@@ -126,11 +136,6 @@ export const Header: React.FC<HeaderProps> = ({
             className="flex items-center gap-2.5 text-left focus:outline-none group"
             title="DiplomaJob - Go to Home"
           >
-            <img
-              alt="DiplomaJob Brand Logo"
-              className="h-8 w-auto object-contain transition-transform group-hover:scale-105 filter drop-shadow"
-              src="https://lh3.googleusercontent.com/aida/AEtjO1XQk2nvUCgt9SMz_yfGP9u_XgZhcaTs051AWkxdNRnDHX7_Yhy0UGP_MspYCYaBP6i-eg3R4SkX_TAsyiPrgrjHpFqNoa_krOtAzvWdcdPk4OQFZyetNmT1KxaIBy1soTJKMOd5j3fgChRgLU4B9jHSaaRnf20-qke4aaey0Fk6njBXtL3s47huI6m1oh5hVGQE_6ANyiKagyR_EMzYIkcWUrjCAWMe7ywN2ihA4A7rG42GhrVjun_p3OzL"
-            />
             <div className="flex flex-col">
               <span className="font-extrabold text-xl sm:text-2xl text-primary tracking-tight leading-none">
                 DiplomaJob
@@ -200,18 +205,41 @@ export const Header: React.FC<HeaderProps> = ({
             Post a Job
           </button>
 
-          {/* Portal Switcher Dropdown */}
-          <div className="relative hidden lg:inline-block">
-            <select
-              value={userRole}
-              onChange={(e) => onChangeRole(e.target.value as any)}
-              className="text-xs font-semibold bg-surface-container-low text-on-surface hover:text-primary px-2.5 py-1.5 rounded-xl border border-outline-variant/40 outline-none cursor-pointer"
-            >
-              <option value="student">Student Portal</option>
-              <option value="employer">Employer Dashboard</option>
-              <option value="admin">Admin Panel</option>
-            </select>
-          </div>
+          {/* User Dashboard Tab Button */}
+          <button
+            onClick={() => onNavigate('user-dashboard')}
+            className={`hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+              currentScreen === 'user-dashboard'
+                ? 'bg-primary text-white border-primary shadow-xs'
+                : 'bg-surface-container-low hover:bg-surface-container text-on-surface border-outline-variant/40'
+            }`}
+            title="Candidate User Page: Applied jobs, bookmarks, dossier"
+          >
+            <span className="material-symbols-outlined text-[16px] text-primary">person</span>
+            <span>User Page</span>
+          </button>
+
+          {/* Admin Panel Tab Button - Requires Login */}
+          <button
+            onClick={() => {
+              if (!currentUser) {
+                onOpenAuth();
+              } else {
+                onNavigate('admin-panel');
+              }
+            }}
+            className={`hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+              currentScreen === 'admin-panel'
+                ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                : 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border-amber-500/30'
+            }`}
+            title={currentUser ? "Admin & Recruiter Panel: Manage applications, jobs, vigilance" : "Admin Panel (Sign in required)"}
+          >
+            <span className="material-symbols-outlined text-[16px]">
+              {currentUser ? 'admin_panel_settings' : 'lock'}
+            </span>
+            <span>Admin Page</span>
+          </button>
 
           {/* Saved Jobs Bookmark */}
           {savedJobsCount > 0 && (
@@ -279,6 +307,26 @@ export const Header: React.FC<HeaderProps> = ({
                     </span>
                   </div>
                   <div className="py-1">
+                    <button
+                      onClick={() => {
+                        onNavigate('user-dashboard');
+                        setProfileDropdownOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-xs font-bold text-primary hover:bg-primary/10 flex items-center gap-2"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">person</span>
+                      My Candidate Page & Applications
+                    </button>
+                    <button
+                      onClick={() => {
+                        onNavigate('admin-panel');
+                        setProfileDropdownOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-xs font-bold text-amber-400 hover:bg-amber-400/10 flex items-center gap-2"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">admin_panel_settings</span>
+                      Admin & Recruiter Control Panel
+                    </button>
                     <button
                       onClick={() => {
                         onNavigate('resume-builder');
@@ -464,6 +512,41 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           <div className="space-y-1">
+            <button
+              onClick={() => {
+                onNavigate('user-dashboard');
+                setMobileMenuOpen(false);
+              }}
+              className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 ${
+                currentScreen === 'user-dashboard'
+                  ? 'bg-primary text-white'
+                  : 'bg-primary/10 text-primary hover:bg-primary/20'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[18px]">person</span>
+              <span>Candidate User Page (My Applications)</span>
+            </button>
+            <button
+              onClick={() => {
+                if (!currentUser) {
+                  onOpenAuth();
+                } else {
+                  onNavigate('admin-panel');
+                }
+                setMobileMenuOpen(false);
+              }}
+              className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 ${
+                currentScreen === 'admin-panel'
+                  ? 'bg-amber-600 text-white'
+                  : 'bg-amber-500/15 text-amber-300 hover:bg-amber-500/25'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[18px]">
+                {currentUser ? 'admin_panel_settings' : 'lock'}
+              </span>
+              <span>Admin & Recruiter Control Panel {!currentUser && '(Login Required)'}</span>
+            </button>
+
             {navLinks.map((link) => (
               <button
                 key={link.id}
