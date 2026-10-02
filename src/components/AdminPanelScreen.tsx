@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Job } from '../data/portalData';
+import { Job, COMPANIES_DATA, Company, AcademicCriteria } from '../data/portalData';
+import { CompanyCriteriaModal } from './CompanyCriteriaModal';
 import { db, collection, onSnapshot, doc, updateDoc, deleteDoc, addDoc, auth, signInWithPopup, googleProvider, User } from '../firebase';
 
 interface AdminPanelProps {
@@ -69,10 +70,114 @@ export const AdminPanelScreen: React.FC<AdminPanelProps> = ({
       setIsSigningIn(false);
     }
   };
-  const [activeTab, setActiveTab] = useState<'jobs' | 'applications' | 'fraud' | 'system'>('applications');
+  const [activeTab, setActiveTab] = useState<'jobs' | 'applications' | 'criteria' | 'fraud' | 'system'>('applications');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [branchFilter, setBranchFilter] = useState('all');
+
+  // Company Academic Criteria State
+  const [companies, setCompanies] = useState<Company[]>(() => {
+    try {
+      const saved = localStorage.getItem('diplomajob_custom_companies_criteria');
+      if (saved) {
+        const parsed: Record<string, Partial<Company> & { academicCriteria: AcademicCriteria }> = JSON.parse(saved);
+        const merged = COMPANIES_DATA.map((comp) => {
+          if (parsed[comp.id]) {
+            return {
+              ...comp,
+              ...parsed[comp.id],
+              academicCriteria: {
+                ...comp.academicCriteria,
+                ...parsed[comp.id].academicCriteria,
+              },
+            };
+          }
+          return comp;
+        });
+        Object.entries(parsed).forEach(([id, customData]) => {
+          if (!merged.some((c) => c.id === id)) {
+            merged.unshift({
+              id,
+              name: customData.name || 'New Enterprise',
+              initials: (customData.name || 'NE').slice(0, 2).toUpperCase(),
+              color: 'text-primary',
+              openings: customData.openings || 20,
+              category: customData.category || 'Automotive & Manufacturing',
+              headquarters: customData.headquarters || 'Pune, Maharashtra',
+              locations: ['Industrial Corridor'],
+              description: 'Recruiting polytechnic diploma candidates with verified criteria.',
+              hiringBranches: ['Mechanical', 'Electrical'],
+              benefits: ['Subsidized Canteen', 'Transport'],
+              academicCriteria: customData.academicCriteria,
+            } as Company);
+          }
+        });
+        return merged;
+      }
+    } catch (e) {
+      console.warn('Error loading custom companies in AdminPanel:', e);
+    }
+    return COMPANIES_DATA;
+  });
+
+  const [isCriteriaModalOpen, setIsCriteriaModalOpen] = useState(false);
+  const [editingCompany, setEditingCompany] = useState<Company | null>(null);
+  const [criteriaSearchQuery, setCriteriaSearchQuery] = useState('');
+  const [criteriaCgpaFilter, setCriteriaCgpaFilter] = useState('all');
+
+  const handleSaveCompanyCriteria = (
+    companyId: string,
+    updatedData: Partial<Company> & { academicCriteria: AcademicCriteria }
+  ) => {
+    setCompanies((prev) => {
+      const exists = prev.some((c) => c.id === companyId);
+      let updated: Company[];
+      if (exists) {
+        updated = prev.map((c) =>
+          c.id === companyId
+            ? ({
+                ...c,
+                ...updatedData,
+                academicCriteria: updatedData.academicCriteria,
+              } as Company)
+            : c
+        );
+      } else {
+        const newComp: Company = {
+          id: companyId,
+          name: updatedData.name || 'New Enterprise',
+          initials: (updatedData.name || 'NE').slice(0, 2).toUpperCase(),
+          color: 'text-primary',
+          openings: 20,
+          category: updatedData.category || 'Automotive & Manufacturing',
+          headquarters: updatedData.headquarters || 'Pune, Maharashtra',
+          locations: ['Pune Industrial Corridor'],
+          description: 'Recruiting polytechnic diploma candidates with verified criteria.',
+          hiringBranches: ['Mechanical', 'Electrical', 'Production'],
+          benefits: ['Subsidized Canteen', 'Provident Fund'],
+          academicCriteria: updatedData.academicCriteria,
+        } as Company;
+        updated = [newComp, ...prev];
+      }
+
+      // Persist to localStorage
+      try {
+        const existingStored = JSON.parse(localStorage.getItem('diplomajob_custom_companies_criteria') || '{}');
+        existingStored[companyId] = {
+          ...updatedData,
+          academicCriteria: updatedData.academicCriteria,
+        };
+        localStorage.setItem('diplomajob_custom_companies_criteria', JSON.stringify(existingStored));
+      } catch (err) {
+        console.warn('Error saving to localStorage:', err);
+      }
+
+      return updated;
+    });
+
+    setActionToast(`Criteria updated for ${updatedData.name}! Cutoff set to ${updatedData.academicCriteria.minCgpa} CGPA (${updatedData.academicCriteria.minPercentage}%).`);
+    setTimeout(() => setActionToast(null), 3500);
+  };
 
   // Real-time Applications from Firestore
   const [applications, setApplications] = useState<ApplicationData[]>([
@@ -429,6 +534,17 @@ export const AdminPanelScreen: React.FC<AdminPanelProps> = ({
           Job & Walk-In Management ({jobs.length})
         </button>
         <button
+          onClick={() => setActiveTab('criteria')}
+          className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-bold border-b-2 transition-all whitespace-nowrap ${
+            activeTab === 'criteria'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-on-surface-variant hover:text-on-surface'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[18px]">school</span>
+          Company Degree & CGPA Criteria ({companies.length})
+        </button>
+        <button
           onClick={() => setActiveTab('fraud')}
           className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-bold border-b-2 transition-all whitespace-nowrap ${
             activeTab === 'fraud'
@@ -647,7 +763,168 @@ export const AdminPanelScreen: React.FC<AdminPanelProps> = ({
         </div>
       )}
 
-      {/* TAB 3: FRAUD REPORTS */}
+      {/* TAB 3: COMPANY DEGREE & CGPA CRITERIA MANAGER */}
+      {activeTab === 'criteria' && (
+        <div className="space-y-4">
+          <div className="bg-surface-container p-5 rounded-2xl border border-outline-variant/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="material-symbols-outlined text-primary text-[20px]">school</span>
+                <h3 className="text-base font-bold text-on-surface">Company Degree & CGPA Criteria Directory</h3>
+              </div>
+              <p className="text-xs text-on-surface-variant max-w-2xl">
+                Configure official Minimum CGPA cutoffs, allowable polytechnic degrees, lateral entry diplomas, and backlog rules applied during walk-in drives and online candidate filtering.
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                setEditingCompany(null);
+                setIsCriteriaModalOpen(true);
+              }}
+              className="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5 shrink-0 hover:scale-101 active:scale-98"
+            >
+              <span className="material-symbols-outlined text-[18px]">add_circle</span>
+              <span>+ Add / Configure Company Criteria</span>
+            </button>
+          </div>
+
+          {/* Search and Cutoff Filter */}
+          <div className="bg-surface-container p-4 rounded-2xl border border-outline-variant/30 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="relative w-full sm:w-80">
+              <span className="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-[18px]">
+                search
+              </span>
+              <input
+                type="text"
+                placeholder="Search company, degree, or sector..."
+                value={criteriaSearchQuery}
+                onChange={(e) => setCriteriaSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 bg-surface-container-low border border-outline-variant/40 rounded-xl text-xs text-on-surface outline-none focus:border-primary"
+              />
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <span className="text-xs text-on-surface-variant font-bold">Cutoff Filter:</span>
+              <select
+                value={criteriaCgpaFilter}
+                onChange={(e) => setCriteriaCgpaFilter(e.target.value)}
+                className="px-3 py-2 bg-surface-container-low border border-outline-variant/40 rounded-xl text-xs text-on-surface font-semibold outline-none focus:border-primary"
+              >
+                <option value="all">All Cutoff Standards</option>
+                <option value="6.0">Max 6.0 CGPA Cutoff</option>
+                <option value="6.5">Max 6.5 CGPA Cutoff</option>
+                <option value="7.0">Max 7.0 CGPA Cutoff</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Companies Criteria Table */}
+          <div className="bg-surface-container rounded-2xl border border-outline-variant/30 overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-surface-container-high text-on-surface-variant text-[11px] uppercase tracking-wider font-extrabold border-b border-outline-variant/30">
+                  <tr>
+                    <th className="py-3 px-4">Company & Sector</th>
+                    <th className="py-3 px-4">Min Cutoff (CGPA & %)</th>
+                    <th className="py-3 px-4">Allowed Degree / Qualifications</th>
+                    <th className="py-3 px-4">Backlog & Batches</th>
+                    <th className="py-3 px-4">Special Conditions</th>
+                    <th className="py-3 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-outline-variant/20 text-on-surface font-medium">
+                  {companies
+                    .filter((comp) => {
+                      if (criteriaSearchQuery.trim()) {
+                        const q = criteriaSearchQuery.toLowerCase();
+                        const matchName = comp.name.toLowerCase().includes(q);
+                        const matchCat = comp.category.toLowerCase().includes(q);
+                        const matchQual = comp.academicCriteria.allowedQualifications.some((ql) =>
+                          ql.toLowerCase().includes(q)
+                        );
+                        if (!matchName && !matchCat && !matchQual) return false;
+                      }
+                      if (criteriaCgpaFilter !== 'all') {
+                        const maxCutoff = parseFloat(criteriaCgpaFilter);
+                        if (comp.academicCriteria.minCgpa > maxCutoff) return false;
+                      }
+                      return true;
+                    })
+                    .map((comp) => (
+                      <tr key={comp.id} className="hover:bg-surface-container-low transition-colors">
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-surface-container-highest flex items-center justify-center font-bold text-xs text-primary shrink-0">
+                              {comp.initials}
+                            </div>
+                            <div>
+                              <span className="font-bold text-on-surface block">{comp.name}</span>
+                              <span className="text-[10px] text-on-surface-variant">{comp.category}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="space-y-0.5">
+                            <span className="px-2 py-0.5 rounded-md bg-primary text-white font-extrabold text-xs inline-block">
+                              {comp.academicCriteria.minCgpa} CGPA
+                            </span>
+                            <span className="text-[11px] text-on-surface-variant font-bold block">
+                              Min {comp.academicCriteria.minPercentage}% Aggregate
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 max-w-xs">
+                          <div className="flex flex-wrap gap-1">
+                            {comp.academicCriteria.allowedQualifications.map((qual, qIdx) => (
+                              <span
+                                key={qIdx}
+                                className="px-2 py-0.5 rounded text-[10px] font-semibold bg-surface-container-low text-on-surface border border-outline-variant/30"
+                              >
+                                {qual}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`text-[11px] font-bold block ${
+                            comp.academicCriteria.maxLiveBacklogs === 0 ? 'text-secondary' : 'text-amber-400'
+                          }`}>
+                            {comp.academicCriteria.maxLiveBacklogs === 0
+                              ? 'Strict 0 Live Backlogs'
+                              : `Max ${comp.academicCriteria.maxLiveBacklogs} Backlogs`}
+                          </span>
+                          <span className="text-[10px] text-on-surface-variant block mt-0.5">
+                            Batches: {comp.academicCriteria.eligibleBatches.join(', ')}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 max-w-xs">
+                          <span className="text-[11px] text-on-surface-variant line-clamp-2">
+                            {comp.academicCriteria.specialConditions || comp.academicCriteria.boardRequirements}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <button
+                            onClick={() => {
+                              setEditingCompany(comp);
+                              setIsCriteriaModalOpen(true);
+                            }}
+                            className="px-3 py-1.5 bg-surface-container-high hover:bg-surface-container-highest text-primary hover:text-primary-container font-bold rounded-lg border border-primary/30 text-xs inline-flex items-center gap-1 transition-all"
+                          >
+                            <span className="material-symbols-outlined text-[15px]">tune</span>
+                            <span>Edit Criteria</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: FRAUD REPORTS */}
       {activeTab === 'fraud' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -729,6 +1006,15 @@ export const AdminPanelScreen: React.FC<AdminPanelProps> = ({
           </div>
         </div>
       )}
+
+      {/* Modal for Adding / Editing Company Academic Criteria */}
+      <CompanyCriteriaModal
+        isOpen={isCriteriaModalOpen}
+        onClose={() => setIsCriteriaModalOpen(false)}
+        onSaveCriteria={handleSaveCompanyCriteria}
+        existingCompany={editingCompany}
+        allCompanies={companies}
+      />
     </div>
   );
 };

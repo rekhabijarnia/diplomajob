@@ -21,15 +21,38 @@ export const QuickApplyModal: React.FC<QuickApplyModalProps> = ({
   const [candidateName, setCandidateName] = useState(propUser?.displayName || auth.currentUser?.displayName || 'Rahul Shinde');
   const [applicantEmail, setApplicantEmail] = useState(propUser?.email || auth.currentUser?.email || 'rahul.shinde.diploma@gmail.com');
   const [phone, setPhone] = useState('+91 98765 43210');
+  const [qualification, setQualification] = useState('3-Year Regular Polytechnic Diploma');
+  const [cgpa, setCgpa] = useState('7.6');
+  const [aggregateMarks, setAggregateMarks] = useState('74.5%');
+  const [activeBacklogs, setActiveBacklogs] = useState(0);
   const [board, setBoard] = useState('MSBTE (Maharashtra)');
   const [rollNo, setRollNo] = useState('210089456');
-  const [aggregateMarks, setAggregateMarks] = useState('78.4%');
   const [passoutYear, setPassoutYear] = useState('2024');
   const [hasNatsId, setHasNatsId] = useState(true);
   const [natsId, setNatsId] = useState('WMH20240981245');
   const [submitting, setSubmitting] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [confirmedSuccess, setConfirmedSuccess] = useState(false);
+
+  // Sync CGPA and Percentage smoothly
+  const handleCgpaChange = (val: string) => {
+    setCgpa(val);
+    const parsed = parseFloat(val);
+    if (!isNaN(parsed) && parsed > 0 && parsed <= 10) {
+      // Standard AICTE / MSBTE conversion: (CGPA - 0.75) * 10 or (CGPA * 9.5)
+      const approxPct = ((parsed - 0.5) * 10).toFixed(1);
+      setAggregateMarks(`${approxPct}%`);
+    }
+  };
+
+  const handlePercentageChange = (val: string) => {
+    setAggregateMarks(val);
+    const cleanNum = parseFloat(val.replace('%', ''));
+    if (!isNaN(cleanNum) && cleanNum > 0 && cleanNum <= 100) {
+      const approxCgpa = (cleanNum / 10 + 0.5).toFixed(1);
+      setCgpa(approxCgpa);
+    }
+  };
 
   useEffect(() => {
     if (propUser) {
@@ -100,10 +123,13 @@ export const QuickApplyModal: React.FC<QuickApplyModalProps> = ({
         applicantName: candidateName || effectiveUser.displayName || 'Rahul Shinde',
         applicantEmail: applicantEmail || effectiveUser.email || 'rahul.shinde.diploma@gmail.com',
         applicantPhone: phone,
+        qualification,
+        cgpa,
+        percentage: aggregateMarks,
+        activeBacklogs,
         board,
         branch: job.branch,
         rollNo,
-        percentage: aggregateMarks,
         passingYear: passoutYear,
         natsId: hasNatsId ? natsId : '',
         appliedAt: new Date().toISOString(),
@@ -259,6 +285,47 @@ export const QuickApplyModal: React.FC<QuickApplyModalProps> = ({
               </div>
             </div>
 
+            {/* LIVE ACADEMIC CRITERIA VERIFICATION BANNER */}
+            {(() => {
+              const reqCgpa = job.minCgpa || (job.minPercentage / 10);
+              const candCgpaNum = parseFloat(cgpa);
+              const passesCgpa = !isNaN(candCgpaNum) && candCgpaNum >= reqCgpa;
+              const maxBacklogs = job.maxLiveBacklogs ?? 0;
+              const passesBacklogs = activeBacklogs <= maxBacklogs;
+              const isEligible = passesCgpa && passesBacklogs;
+
+              return (
+                <div className={`p-3 rounded-xl border text-xs flex items-start gap-2.5 ${
+                  isEligible 
+                    ? 'bg-emerald-500/10 border-emerald-500/30 text-on-surface' 
+                    : 'bg-amber-500/10 border-amber-500/30 text-on-surface'
+                }`}>
+                  <span className={`material-symbols-outlined text-[20px] shrink-0 mt-0.5 ${
+                    isEligible ? 'text-emerald-400' : 'text-amber-400'
+                  }`}>
+                    {isEligible ? 'task_alt' : 'warning'}
+                  </span>
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2 flex-wrap font-bold">
+                      <span className={isEligible ? 'text-emerald-400' : 'text-amber-400'}>
+                        {isEligible ? 'Academic Eligibility Verified' : 'Academic Cutoff Alert'}
+                      </span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-surface-container font-mono">
+                        Required: {reqCgpa.toFixed(1)} CGPA ({job.minPercentage}%) • Max {maxBacklogs} Backlogs
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-on-surface-variant leading-snug">
+                      {isEligible ? (
+                        <>Your <strong>{cgpa} CGPA ({aggregateMarks})</strong> and <strong>{activeBacklogs} backlogs</strong> meet <strong>{job.company}</strong>&apos;s criteria. Direct interview priority enabled.</>
+                      ) : (
+                        <><strong>{job.company}</strong> prefers min <strong>{reqCgpa.toFixed(1)} CGPA</strong>. You may still apply under apprentice/special talent consideration.</>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              );
+            })()}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-bold text-on-surface mb-1">Full Name</label>
@@ -282,6 +349,93 @@ export const QuickApplyModal: React.FC<QuickApplyModalProps> = ({
                   onChange={(e) => setPhone(e.target.value)}
                   className="w-full text-xs px-3 py-2 bg-surface-container-low border border-outline-variant/40 rounded-lg outline-none focus:border-primary text-on-surface"
                 />
+              </div>
+
+              {/* Degree / Qualification Dropdown */}
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-bold text-on-surface mb-1">
+                  Degree / Qualification Type
+                </label>
+                <select
+                  value={qualification}
+                  onChange={(e) => setQualification(e.target.value)}
+                  className="w-full text-xs px-3 py-2 bg-surface-container-low border border-outline-variant/40 rounded-lg outline-none focus:border-primary text-on-surface font-semibold"
+                >
+                  <option value="3-Year Regular Polytechnic Diploma">3-Year Regular Polytechnic Diploma</option>
+                  <option value="2-Year Lateral Entry Diploma (after 12th Sci / ITI)">2-Year Lateral Entry Diploma (after 12th Sci / ITI)</option>
+                  <option value="Dual ITI + Polytechnic Diploma">Dual ITI + Polytechnic Diploma</option>
+                  <option value="Lateral Entry B.Tech / B.E.">Lateral Entry B.Tech / B.E.</option>
+                </select>
+              </div>
+
+              {/* CGPA and Aggregate Marks with Conversion */}
+              <div>
+                <label className="block text-xs font-bold text-on-surface mb-1">
+                  Diploma CGPA (Scale of 10)
+                </label>
+                <input
+                  required
+                  type="number"
+                  step="0.1"
+                  min="4.0"
+                  max="10.0"
+                  value={cgpa}
+                  onChange={(e) => handleCgpaChange(e.target.value)}
+                  placeholder="e.g. 7.6"
+                  className="w-full text-xs px-3 py-2 bg-surface-container-low border border-outline-variant/40 rounded-lg outline-none focus:border-primary text-on-surface font-bold text-primary"
+                />
+                <span className="text-[10px] text-on-surface-variant block mt-0.5">
+                  Cutoff: {job.minCgpa || (job.minPercentage / 10).toFixed(1)} CGPA
+                </span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-on-surface mb-1">
+                  Aggregate Percentage (%)
+                </label>
+                <input
+                  required
+                  type="text"
+                  value={aggregateMarks}
+                  onChange={(e) => handlePercentageChange(e.target.value)}
+                  placeholder="e.g. 74.5%"
+                  className="w-full text-xs px-3 py-2 bg-surface-container-low border border-outline-variant/40 rounded-lg outline-none focus:border-primary text-on-surface font-bold"
+                />
+                <span className="text-[10px] text-on-surface-variant block mt-0.5">
+                  Cutoff: {job.minPercentage}%
+                </span>
+              </div>
+
+              {/* Active Live Backlogs */}
+              <div>
+                <label className="block text-xs font-bold text-on-surface mb-1">
+                  Live / Active Backlogs
+                </label>
+                <select
+                  value={activeBacklogs}
+                  onChange={(e) => setActiveBacklogs(parseInt(e.target.value))}
+                  className="w-full text-xs px-3 py-2 bg-surface-container-low border border-outline-variant/40 rounded-lg outline-none focus:border-primary text-on-surface font-semibold"
+                >
+                  <option value={0}>0 (Strictly Zero Live Backlogs)</option>
+                  <option value={1}>1 Active Backlog</option>
+                  <option value={2}>2 or more Backlogs</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-on-surface mb-1">
+                  Passout Batch
+                </label>
+                <select
+                  value={passoutYear}
+                  onChange={(e) => setPassoutYear(e.target.value)}
+                  className="w-full text-xs px-3 py-2 bg-surface-container-low border border-outline-variant/40 rounded-lg outline-none focus:border-primary text-on-surface"
+                >
+                  <option value="2025">2025 (Appearing / Final Sem)</option>
+                  <option value="2024">2024 Passout</option>
+                  <option value="2023">2023 Passout</option>
+                  <option value="2022">2022 Passout</option>
+                </select>
               </div>
 
               <div>
@@ -316,36 +470,6 @@ export const QuickApplyModal: React.FC<QuickApplyModalProps> = ({
                   placeholder="e.g. 210089456"
                   className="w-full text-xs px-3 py-2 bg-surface-container-low border border-outline-variant/40 rounded-lg outline-none focus:border-primary text-on-surface"
                 />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-on-surface mb-1">
-                  Diploma Aggregate %
-                </label>
-                <input
-                  required
-                  type="text"
-                  value={aggregateMarks}
-                  onChange={(e) => setAggregateMarks(e.target.value)}
-                  placeholder="e.g. 74.2%"
-                  className="w-full text-xs px-3 py-2 bg-surface-container-low border border-outline-variant/40 rounded-lg outline-none focus:border-primary text-on-surface"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-on-surface mb-1">
-                  Passout Batch
-                </label>
-                <select
-                  value={passoutYear}
-                  onChange={(e) => setPassoutYear(e.target.value)}
-                  className="w-full text-xs px-3 py-2 bg-surface-container-low border border-outline-variant/40 rounded-lg outline-none focus:border-primary text-on-surface"
-                >
-                  <option value="2025">2025 (Appearing / Final Sem)</option>
-                  <option value="2024">2024 Passout</option>
-                  <option value="2023">2023 Passout</option>
-                  <option value="2022">2022 Passout</option>
-                </select>
               </div>
             </div>
 

@@ -1,3 +1,13 @@
+export interface AcademicCriteria {
+  minCgpa: number;                 // e.g. 6.5
+  minPercentage: number;           // e.g. 60
+  allowedQualifications: string[]; // e.g. ['3-Year Regular Polytechnic Diploma', 'Lateral Entry B.Tech / B.E.', 'Dual ITI + Diploma']
+  maxLiveBacklogs: number;         // e.g. 0 (Strict Zero Live Backlogs)
+  eligibleBatches: string[];       // e.g. ['2023', '2024', '2025', '2026']
+  boardRequirements: string;       // e.g. 'AICTE / State Technical Board (MSBTE, BTEUP, DTE, GTU) Regular Full-time'
+  specialConditions?: string;      // e.g. 'Minimum 60% in 10th (SSC) & Diploma aggregate across all semesters'
+}
+
 export interface Job {
   id: string;
   title: string;
@@ -20,6 +30,11 @@ export interface Job {
   skills: string[];
   responsibilities: string[];
   minPercentage: number;
+  minCgpa?: number;
+  allowedQualifications?: string[];
+  maxLiveBacklogs?: number;
+  eligibleBatches?: string[];
+  boardRequirements?: string;
   openings: number;
 }
 
@@ -49,6 +64,7 @@ export interface Company {
   description: string;
   hiringBranches: string[];
   benefits: string[];
+  academicCriteria: AcademicCriteria;
 }
 
 export interface Testimonial {
@@ -205,6 +221,11 @@ export const JOBS_DATA: Job[] = [
       'Assist senior engineers in CANoe log analysis and pin diagram tracing.'
     ],
     minPercentage: 60,
+    minCgpa: 6.5,
+    allowedQualifications: ['3-Year Regular Polytechnic Diploma', 'Lateral Entry B.Tech / B.E.', 'Dual ITI + Diploma'],
+    maxLiveBacklogs: 0,
+    eligibleBatches: ['2023', '2024', '2025'],
+    boardRequirements: 'AICTE / State Technical Board Approved',
     openings: 12
   },
   {
@@ -232,6 +253,11 @@ export const JOBS_DATA: Job[] = [
       'Maintain daily muster and worker safety compliance on floor levels.'
     ],
     minPercentage: 65,
+    minCgpa: 6.8,
+    allowedQualifications: ['3-Year Regular Polytechnic Diploma (Civil)'],
+    maxLiveBacklogs: 0,
+    eligibleBatches: ['2024', '2025'],
+    boardRequirements: 'AICTE / MSBTE / DTE Approved',
     openings: 18
   },
   {
@@ -260,6 +286,11 @@ export const JOBS_DATA: Job[] = [
       'Participate in Kaizen safety circles and cycle-time reduction initiatives.'
     ],
     minPercentage: 58,
+    minCgpa: 6.2,
+    allowedQualifications: ['3-Year Regular Polytechnic Diploma', 'Dual ITI + Diploma'],
+    maxLiveBacklogs: 0,
+    eligibleBatches: ['2023', '2024', '2025'],
+    boardRequirements: 'AICTE / State Board of Technical Education',
     openings: 35
   },
   {
@@ -287,6 +318,11 @@ export const JOBS_DATA: Job[] = [
       'Participate in daily standups and weekly peer code review sessions.'
     ],
     minPercentage: 65,
+    minCgpa: 6.8,
+    allowedQualifications: ['3-Year Regular Polytechnic Diploma', 'Lateral Entry B.Tech'],
+    maxLiveBacklogs: 0,
+    eligibleBatches: ['2024', '2025'],
+    boardRequirements: 'AICTE / State Technical Board Approved',
     openings: 8
   },
   {
@@ -315,6 +351,11 @@ export const JOBS_DATA: Job[] = [
       'Log daily batch numbers and furnace heat cycle records in the ERP.'
     ],
     minPercentage: 55,
+    minCgpa: 6.0,
+    allowedQualifications: ['3-Year Regular Polytechnic Diploma', 'Dual ITI + Polytechnic Diploma'],
+    maxLiveBacklogs: 1,
+    eligibleBatches: ['2022', '2023', '2024', '2025'],
+    boardRequirements: 'MSBTE / GTU / State Board of Technical Education',
     openings: 40
   },
   {
@@ -342,6 +383,11 @@ export const JOBS_DATA: Job[] = [
       'Ensure strict electrostatic discharge (ESD) safe practices in the battery clean room.'
     ],
     minPercentage: 60,
+    minCgpa: 6.5,
+    allowedQualifications: ['3-Year Regular Polytechnic Diploma', 'Dual ITI + Diploma'],
+    maxLiveBacklogs: 0,
+    eligibleBatches: ['2023', '2024', '2025'],
+    boardRequirements: 'AICTE / MSBTE / DTE Approved',
     openings: 24
   },
   {
@@ -369,6 +415,11 @@ export const JOBS_DATA: Job[] = [
       'Replace consumable filters, gaskets, and check injector nozzle spray patterns.'
     ],
     minPercentage: 60,
+    minCgpa: 6.5,
+    allowedQualifications: ['3-Year Regular Polytechnic Diploma (Mech / Elec)'],
+    maxLiveBacklogs: 0,
+    eligibleBatches: ['2024', '2025'],
+    boardRequirements: 'AICTE Approved Polytechnic Institutions',
     openings: 15
   },
   {
@@ -396,6 +447,11 @@ export const JOBS_DATA: Job[] = [
       'Verify boiler safety valves and pressure gauges calibration dates.'
     ],
     minPercentage: 62,
+    minCgpa: 6.5,
+    allowedQualifications: ['3-Year Regular Polytechnic Diploma (Chemical / Mech)'],
+    maxLiveBacklogs: 0,
+    eligibleBatches: ['2023', '2024', '2025'],
+    boardRequirements: 'AICTE / State Technical Board Approved',
     openings: 10
   },
   {
@@ -423,6 +479,11 @@ export const JOBS_DATA: Job[] = [
       'Present a 10-page final industrial internship project report to plant management.'
     ],
     minPercentage: 65,
+    minCgpa: 6.8,
+    allowedQualifications: ['Currently Enrolled 3-Year Polytechnic Diploma'],
+    maxLiveBacklogs: 0,
+    eligibleBatches: ['2025', '2026'],
+    boardRequirements: 'State Board of Technical Education',
     openings: 20
   },
   {
@@ -451,6 +512,11 @@ export const JOBS_DATA: Job[] = [
       'Execute strictly permits-to-work (PTW) for hot work and confined space entry.'
     ],
     minPercentage: 60,
+    minCgpa: 6.5,
+    allowedQualifications: ['3-Year Regular Polytechnic Diploma'],
+    maxLiveBacklogs: 0,
+    eligibleBatches: ['2024', '2025'],
+    boardRequirements: 'AICTE Approved Full-Time Regular Diploma',
     openings: 50
   },
   {
@@ -478,6 +544,11 @@ export const JOBS_DATA: Job[] = [
       'Inspect bore roughness and surface finish with digital profilometer.'
     ],
     minPercentage: 58,
+    minCgpa: 6.0,
+    allowedQualifications: ['3-Year Regular Polytechnic Diploma', 'Dual ITI + Diploma'],
+    maxLiveBacklogs: 1,
+    eligibleBatches: ['2022', '2023', '2024', '2025'],
+    boardRequirements: 'DOTE / DTE / MSBTE Approved',
     openings: 16
   },
   {
@@ -505,6 +576,11 @@ export const JOBS_DATA: Job[] = [
       'Fix data anomalies and write unit test cases for core calculations.'
     ],
     minPercentage: 65,
+    minCgpa: 6.8,
+    allowedQualifications: ['3-Year Regular Polytechnic Diploma', 'Lateral Entry B.Tech'],
+    maxLiveBacklogs: 0,
+    eligibleBatches: ['2024', '2025'],
+    boardRequirements: 'AICTE / State Technical Board Approved',
     openings: 10
   }
 ];
@@ -521,7 +597,16 @@ export const COMPANIES_DATA: Company[] = [
     locations: ['Pimpri (Pune)', 'Sanand (Gujarat)', 'Jamshedpur', 'Pantnagar'],
     description: 'India’s pioneer automaker leading the Electric Vehicle revolution with Nexon EV and Tiago EV. Employs over 8,000 polytechnic diploma engineers across vehicle assembly, chassis lines, and testing.',
     hiringBranches: ['Mechanical', 'Automobile', 'Electrical', 'Electronics & TC'],
-    benefits: ['Subsidized Canteen', 'Plant Bus Network', 'Fast-Track Promotion to Junior Engineer', 'Annual Performance Bonus']
+    benefits: ['Subsidized Canteen', 'Plant Bus Network', 'Fast-Track Promotion to Junior Engineer', 'Annual Performance Bonus'],
+    academicCriteria: {
+      minCgpa: 6.5,
+      minPercentage: 60,
+      allowedQualifications: ['3-Year Regular Polytechnic Diploma', 'Lateral Entry B.Tech / B.E.', 'Dual ITI + Diploma'],
+      maxLiveBacklogs: 0,
+      eligibleBatches: ['2023', '2024', '2025 (Appearing)'],
+      boardRequirements: 'AICTE / MSBTE / BTEUP / DTE approved regular full-time course',
+      specialConditions: 'Min 60% in 10th (SSC) & Diploma with zero live backlogs at joining'
+    }
   },
   {
     id: 'larsen-toubro',
@@ -534,7 +619,16 @@ export const COMPANIES_DATA: Company[] = [
     locations: ['Navi Mumbai', 'Chennai', 'Ahmedabad', 'Delhi NCR', 'Bengaluru'],
     description: 'Global engineering and construction conglomerate behind landmark high-speed rail, metro corridors, expressway bridges, and mega smart city projects across India.',
     hiringBranches: ['Civil', 'Mechanical', 'Electrical'],
-    benefits: ['Free Site Accommodation', 'Safety First Culture', 'Full Medical Cover', 'Technical Masterclass Training']
+    benefits: ['Free Site Accommodation', 'Safety First Culture', 'Full Medical Cover', 'Technical Masterclass Training'],
+    academicCriteria: {
+      minCgpa: 6.8,
+      minPercentage: 65,
+      allowedQualifications: ['3-Year Regular Polytechnic Diploma (Civil / Mech / Elec)'],
+      maxLiveBacklogs: 0,
+      eligibleBatches: ['2024', '2025 (Final Sem)'],
+      boardRequirements: 'State Board of Technical Education / AICTE Accredited',
+      specialConditions: 'First Class throughout without educational gaps greater than 1 year'
+    }
   },
   {
     id: 'bharat-forge',
@@ -547,7 +641,16 @@ export const COMPANIES_DATA: Company[] = [
     locations: ['Mundhwa (Pune)', 'Baramati', 'Satara', 'Jalgaon'],
     description: 'World’s largest forging company manufacturing critical safety parts for global automotive, aerospace, and defense applications. Highly active NATS apprentice recruiter.',
     hiringBranches: ['Mechanical', 'Metallurgy', 'Production', 'Electrical'],
-    benefits: ['Govt NATS Stipend + Plant Incentive', 'Free Canteen Meals', 'Hands-on Heavy Hydraulic Training']
+    benefits: ['Govt NATS Stipend + Plant Incentive', 'Free Canteen Meals', 'Hands-on Heavy Hydraulic Training'],
+    academicCriteria: {
+      minCgpa: 6.0,
+      minPercentage: 55,
+      allowedQualifications: ['3-Year Regular Polytechnic Diploma', 'Dual ITI + Polytechnic Diploma', 'NATS Registered Trainees'],
+      maxLiveBacklogs: 1,
+      eligibleBatches: ['2022', '2023', '2024', '2025'],
+      boardRequirements: 'MSBTE / GTU / State Board of Technical Education',
+      specialConditions: 'Max 1 cleared backlog allowed; physically fit for heavy forge plant shopfloor'
+    }
   },
   {
     id: 'bajaj-auto',
@@ -560,7 +663,16 @@ export const COMPANIES_DATA: Company[] = [
     locations: ['Chakan (Pune)', 'Waluj (Chhatrapati Sambhajinagar)', 'Pantnagar'],
     description: 'Global leader in 2-wheelers and 3-wheelers exported to 79+ countries. Famous for Pulsar, Chetak EV, and world-class automated robotics assembly lines.',
     hiringBranches: ['Mechanical', 'Automobile', 'Electrical', 'Electronics'],
-    benefits: ['Modern Clean Room Workplaces', 'Comprehensive Health Plan', 'Plant Bus Network', 'Continuous Skills Growth']
+    benefits: ['Modern Clean Room Workplaces', 'Comprehensive Health Plan', 'Plant Bus Network', 'Continuous Skills Growth'],
+    academicCriteria: {
+      minCgpa: 6.5,
+      minPercentage: 60,
+      allowedQualifications: ['3-Year Regular Polytechnic Diploma', 'Dual ITI + Diploma (Tool & Die / Auto)'],
+      maxLiveBacklogs: 0,
+      eligibleBatches: ['2023', '2024', '2025'],
+      boardRequirements: 'AICTE / MSBTE / DTE approved regular polytechnic',
+      specialConditions: 'Min 60% aggregate across all semesters; strong technical fundamentals'
+    }
   },
   {
     id: 'mahindra-group',
@@ -573,7 +685,16 @@ export const COMPANIES_DATA: Company[] = [
     locations: ['Chakan (Pune)', 'Nashik', 'Kandivali (Mumbai)', 'Zaheerabad', 'Nagpur'],
     description: 'Leader in robust SUVs (Scorpio-N, XUV700, Thar) and world’s largest tractor manufacturer by volume. Recruits diploma engineers directly for assembly, painting, and test track QA.',
     hiringBranches: ['Automobile', 'Mechanical', 'Agricultural Engg', 'Electrical'],
-    benefits: ['On-campus Sports Complex & Canteen', 'Subsidized Vehicle Lease Scheme', 'Overtime Compensation']
+    benefits: ['On-campus Sports Complex & Canteen', 'Subsidized Vehicle Lease Scheme', 'Overtime Compensation'],
+    academicCriteria: {
+      minCgpa: 6.5,
+      minPercentage: 60,
+      allowedQualifications: ['3-Year Regular Polytechnic Diploma', 'Lateral Entry Diploma after 12th Science / ITI'],
+      maxLiveBacklogs: 0,
+      eligibleBatches: ['2023', '2024', '2025'],
+      boardRequirements: 'State Board of Technical Education Regular Full-Time',
+      specialConditions: 'Zero active backlogs; minimum 55% in 10th Standard (SSC)'
+    }
   },
   {
     id: 'cummins-india',
@@ -586,7 +707,16 @@ export const COMPANIES_DATA: Company[] = [
     locations: ['Kothrud (Pune)', 'Phaltan Megasite', 'Jamshedpur'],
     description: 'Global power technology leader manufacturing diesel and natural gas engines, generator sets, and emission control solutions for mining, marine, and datacenters.',
     hiringBranches: ['Mechanical', 'Electrical', 'Mechatronics'],
-    benefits: ['Best-in-class Workplace Safety', 'Higher Education Sponsorship', 'Equal Opportunity Employer']
+    benefits: ['Best-in-class Workplace Safety', 'Higher Education Sponsorship', 'Equal Opportunity Employer'],
+    academicCriteria: {
+      minCgpa: 7.0,
+      minPercentage: 65,
+      allowedQualifications: ['3-Year Regular Polytechnic Diploma (Mech / Elec / Mechatronics)'],
+      maxLiveBacklogs: 0,
+      eligibleBatches: ['2024', '2025 (Appearing)'],
+      boardRequirements: 'AICTE Approved Polytechnic Institutions',
+      specialConditions: 'Consistent academic record with 65%+ in all 6 diploma semesters'
+    }
   },
   {
     id: 'thermax-limited',
@@ -599,7 +729,16 @@ export const COMPANIES_DATA: Company[] = [
     locations: ['Bhosari (Pune)', 'Chinchwad', 'Savli (Gujarat)', 'Shirwal'],
     description: 'Providing sustainable energy and environment solutions: industrial boilers, solar thermal systems, absorption chillers, water and wastewater treatment plants.',
     hiringBranches: ['Chemical', 'Mechanical', 'Environmental Engg', 'Instrumentation'],
-    benefits: ['Domestic Travel Allowances', 'Subsidized Medical Hospitalization', 'Zero-Harm Safety Protocol']
+    benefits: ['Domestic Travel Allowances', 'Subsidized Medical Hospitalization', 'Zero-Harm Safety Protocol'],
+    academicCriteria: {
+      minCgpa: 6.5,
+      minPercentage: 62,
+      allowedQualifications: ['3-Year Regular Polytechnic Diploma (Chemical / Mech / Instrumentation)'],
+      maxLiveBacklogs: 0,
+      eligibleBatches: ['2023', '2024', '2025'],
+      boardRequirements: 'AICTE / State Technical Board Approved',
+      specialConditions: 'Clearance of all backlogs prior to joining date; willingness for plant travel'
+    }
   },
   {
     id: 'reliance-industries',
@@ -612,7 +751,16 @@ export const COMPANIES_DATA: Company[] = [
     locations: ['Jamnagar', 'Dahej', 'Hazira', 'Nagothane', 'Patalganga', 'Navi Mumbai'],
     description: 'Fortune 500 powerhouse operating the world’s largest single-site petroleum refinery complex in Jamnagar and nationwide Jio 5G infrastructure.',
     hiringBranches: ['Chemical', 'Instrumentation', 'Mechanical', 'Electrical', 'E&TC'],
-    benefits: ['Township Housing with Recreation Clubs', 'Comprehensive Family Mediclaim', 'World-Class Mega Plant Exposure']
+    benefits: ['Township Housing with Recreation Clubs', 'Comprehensive Family Mediclaim', 'World-Class Mega Plant Exposure'],
+    academicCriteria: {
+      minCgpa: 7.0,
+      minPercentage: 65,
+      allowedQualifications: ['3-Year Regular Polytechnic Diploma (Chemical / Petrochem / Instrumentation)'],
+      maxLiveBacklogs: 0,
+      eligibleBatches: ['2024', '2025'],
+      boardRequirements: 'AICTE Approved Full-Time Regular Diploma',
+      specialConditions: 'Strictly 1st Class throughout; medical fitness for continuous plant shifts'
+    }
   },
   {
     id: 'wipro-infrastructure',
@@ -625,7 +773,16 @@ export const COMPANIES_DATA: Company[] = [
     locations: ['Peenya (Bengaluru)', 'Sriperumbudur (Chennai)', 'Hindupur'],
     description: 'Independent hydraulic cylinder manufacturer supplying global OEMs like Caterpillar, JCB, Volvo, and John Deere with high-precision motion control components.',
     hiringBranches: ['Mechanical', 'Mechatronics', 'Production'],
-    benefits: ['Skill Incentive Allowance', 'Subsidized Transport', 'Provident Fund & Gratuity']
+    benefits: ['Skill Incentive Allowance', 'Subsidized Transport', 'Provident Fund & Gratuity'],
+    academicCriteria: {
+      minCgpa: 6.0,
+      minPercentage: 58,
+      allowedQualifications: ['3-Year Regular Polytechnic Diploma', 'Dual ITI + Diploma (Machinist / Tool & Die)'],
+      maxLiveBacklogs: 1,
+      eligibleBatches: ['2022', '2023', '2024', '2025'],
+      boardRequirements: 'DOTE Tamil Nadu / DTE Karnataka / MSBTE',
+      specialConditions: 'Up to 1 cleared backlog acceptable; mechanical precision drawing skills'
+    }
   },
   {
     id: 'bosch-india',
@@ -638,7 +795,16 @@ export const COMPANIES_DATA: Company[] = [
     locations: ['Adugodi (Bengaluru)', 'Chakan (Pune)', 'Naganathapura', 'Jaipur', 'Nashik'],
     description: 'Leading global supplier of automotive mobility solutions, ABS braking sensors, Common Rail Diesel systems, power tools, and industrial drives.',
     hiringBranches: ['Electronics & TC', 'Electrical', 'Computer/IT', 'Mechanical'],
-    benefits: ['German Standard Engineering Training', 'Health Insurance', 'Modern Cafeteria', 'Clean Room Labs']
+    benefits: ['German Standard Engineering Training', 'Health Insurance', 'Modern Cafeteria', 'Clean Room Labs'],
+    academicCriteria: {
+      minCgpa: 6.8,
+      minPercentage: 65,
+      allowedQualifications: ['3-Year Regular Polytechnic Diploma', 'Lateral Entry B.Tech (E&TC / Comp / Elec)'],
+      maxLiveBacklogs: 0,
+      eligibleBatches: ['2024', '2025 (Appearing)'],
+      boardRequirements: 'AICTE / State Directorate of Technical Education',
+      specialConditions: 'Min 65% aggregate in Core Engineering subjects; zero live backlogs'
+    }
   }
 ];
 

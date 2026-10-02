@@ -80,12 +80,16 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
               <span className="text-xs font-bold text-primary truncate block">{job.branch}</span>
             </div>
             <div className="bg-surface-container-lowest p-2.5 rounded-lg border border-outline-variant/30">
-              <span className="text-[10px] text-on-surface-variant block font-medium">Experience Level</span>
-              <span className="text-xs font-bold text-on-surface">{job.experience}</span>
+              <span className="text-[10px] text-on-surface-variant block font-medium">Academic Cutoff</span>
+              <span className="text-xs font-bold text-tertiary">
+                {job.minCgpa || (job.minPercentage / 10).toFixed(1)} CGPA ({job.minPercentage}%)
+              </span>
             </div>
             <div className="bg-surface-container-lowest p-2.5 rounded-lg border border-outline-variant/30">
-              <span className="text-[10px] text-on-surface-variant block font-medium">Minimum Cutoff</span>
-              <span className="text-xs font-bold text-tertiary">{job.minPercentage}% Aggregate</span>
+              <span className="text-[10px] text-on-surface-variant block font-medium">Backlog Policy</span>
+              <span className="text-xs font-bold text-on-surface">
+                {job.maxLiveBacklogs === 0 ? '0 Live Backlogs' : `Max ${job.maxLiveBacklogs || 1} Backlog`}
+              </span>
             </div>
           </div>
         </div>
@@ -103,6 +107,68 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
             <span className="text-[10px] px-2 py-0.5 bg-surface-container-lowest text-secondary font-bold rounded shrink-0">
               100% Free
             </span>
+          </div>
+
+          {/* DEDICATED ACADEMIC & DEGREE ELIGIBILITY REQUIREMENTS SECTION */}
+          <div className="p-4 bg-surface-container-low rounded-xl border border-primary/20 space-y-3">
+            <div className="flex items-center justify-between border-b border-outline-variant/30 pb-2">
+              <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wide">
+                <span className="material-symbols-outlined text-[18px]">school</span>
+                <span>Academic & Degree Eligibility Criteria</span>
+              </div>
+              <span className="px-2 py-0.5 rounded-full bg-primary/20 text-primary text-[11px] font-extrabold border border-primary/30">
+                Min {job.minCgpa || (job.minPercentage / 10).toFixed(1)} CGPA / {job.minPercentage}% Cutoff
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div>
+                <span className="text-[10px] font-bold text-on-surface-variant block mb-1">
+                  Accepted Degrees & Diplomas:
+                </span>
+                <div className="flex flex-wrap gap-1">
+                  {(job.allowedQualifications || [
+                    '3-Year Regular Polytechnic Diploma',
+                    'Lateral Entry B.Tech / B.E.',
+                    'Dual ITI + Diploma',
+                  ]).map((qual, idx) => (
+                    <span
+                      key={idx}
+                      className="px-2 py-0.5 rounded text-[10px] font-semibold bg-surface-container text-on-surface border border-outline-variant/30"
+                    >
+                      {qual}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <div>
+                  <span className="text-[10px] font-bold text-on-surface-variant block">Backlog Standard:</span>
+                  <span className="text-secondary font-bold flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                    {job.maxLiveBacklogs === 0
+                      ? 'Zero Active / Live Backlogs at time of application & joining'
+                      : `Up to ${job.maxLiveBacklogs} cleared backlog permitted`}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-[10px] font-bold text-on-surface-variant block">Eligible Passout Batches:</span>
+                  <span className="text-on-surface font-semibold">
+                    {(job.eligibleBatches || ['2023', '2024', '2025']).join(', ')} Passing Out Batches
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-outline-variant/20 flex items-center gap-2 text-[11px] text-on-surface-variant">
+              <span className="material-symbols-outlined text-[15px] text-secondary">verified</span>
+              <span>
+                <strong>Accreditation: </strong>
+                {job.boardRequirements || 'Must be from an AICTE / State Technical Board (MSBTE, BTEUP, DTE, GTU) approved regular institution.'}
+              </span>
+            </div>
           </div>
 
           {/* Description */}

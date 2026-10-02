@@ -19,6 +19,12 @@ export const PostJobModal: React.FC<PostJobModalProps> = ({ isOpen, onClose, onJ
   const [description, setDescription] = useState('');
   const [skills, setSkills] = useState('AutoCAD, 5S, Torque Tools, Vernier Caliper');
   const [type, setType] = useState<'job' | 'internship' | 'apprentice'>('job');
+  const [minCgpa, setMinCgpa] = useState('6.5');
+  const [minPercentage, setMinPercentage] = useState(60);
+  const [allowedQuals, setAllowedQuals] = useState('3-Year Regular Polytechnic Diploma, Lateral Entry B.Tech');
+  const [maxLiveBacklogs, setMaxLiveBacklogs] = useState(0);
+  const [eligibleBatches, setEligibleBatches] = useState('2024, 2025');
+  const [boardReqs, setBoardReqs] = useState('AICTE / State Technical Board Approved');
   const [agreedZeroFee, setAgreedZeroFee] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -79,7 +85,12 @@ export const PostJobModal: React.FC<PostJobModalProps> = ({ isOpen, onClose, onJ
         'Coordinate with shopfloor machine operators for timely cycle execution.',
         'Maintain 5S and safety adherence during all work shifts.'
       ],
-      minPercentage: 60,
+      minPercentage: Number(minPercentage) || 60,
+      minCgpa: parseFloat(minCgpa) || 6.5,
+      allowedQualifications: allowedQuals.split(',').map((s) => s.trim()),
+      maxLiveBacklogs: maxLiveBacklogs,
+      eligibleBatches: eligibleBatches.split(',').map((s) => s.trim()),
+      boardRequirements: boardReqs,
       openings: 10
     };
 
@@ -270,6 +281,82 @@ export const PostJobModal: React.FC<PostJobModalProps> = ({ isOpen, onClose, onJ
                 value={experience}
                 onChange={(e) => setExperience(e.target.value)}
                 className="w-full px-3 py-2 bg-surface-container-low border border-outline-variant/40 rounded-lg outline-none focus:border-primary text-on-surface"
+              />
+            </div>
+          </div>
+
+          {/* Academic & Degree Requirements Box */}
+          <div className="p-3.5 bg-surface-container-low rounded-xl border border-primary/25 space-y-3">
+            <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wide">
+              <span className="material-symbols-outlined text-[16px]">school</span>
+              <span>Candidate Academic & Degree Criteria</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-bold text-on-surface mb-1">Min CGPA Cutoff (Scale 10)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="4.0"
+                  max="10.0"
+                  value={minCgpa}
+                  onChange={(e) => {
+                    setMinCgpa(e.target.value);
+                    const p = parseFloat(e.target.value);
+                    if (!isNaN(p)) setMinPercentage(Math.round(p * 9.5));
+                  }}
+                  className="w-full px-2.5 py-1.5 text-xs bg-surface-container border border-outline-variant/40 rounded-lg text-on-surface font-bold text-primary"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-on-surface mb-1">Min Percentage Cutoff (%)</label>
+                <input
+                  type="number"
+                  min="40"
+                  max="100"
+                  value={minPercentage}
+                  onChange={(e) => setMinPercentage(Number(e.target.value))}
+                  className="w-full px-2.5 py-1.5 text-xs bg-surface-container border border-outline-variant/40 rounded-lg text-on-surface font-bold"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-bold text-on-surface mb-1">Backlog Policy</label>
+                <select
+                  value={maxLiveBacklogs}
+                  onChange={(e) => setMaxLiveBacklogs(Number(e.target.value))}
+                  className="w-full px-2.5 py-1.5 text-xs bg-surface-container border border-outline-variant/40 rounded-lg text-on-surface font-semibold"
+                >
+                  <option value={0}>0 (Strictly Zero Live Backlogs)</option>
+                  <option value={1}>Max 1 Cleared Backlog</option>
+                  <option value={2}>Max 2 Backlogs</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-on-surface mb-1">Eligible Batches</label>
+                <input
+                  type="text"
+                  placeholder="e.g. 2024, 2025"
+                  value={eligibleBatches}
+                  onChange={(e) => setEligibleBatches(e.target.value)}
+                  className="w-full px-2.5 py-1.5 text-xs bg-surface-container border border-outline-variant/40 rounded-lg text-on-surface"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-on-surface mb-1">Allowed Qualifications (Comma separated)</label>
+              <input
+                type="text"
+                value={allowedQuals}
+                onChange={(e) => setAllowedQuals(e.target.value)}
+                placeholder="e.g. 3-Year Regular Polytechnic Diploma, Lateral Entry B.Tech"
+                className="w-full px-2.5 py-1.5 text-xs bg-surface-container border border-outline-variant/40 rounded-lg text-on-surface"
               />
             </div>
           </div>

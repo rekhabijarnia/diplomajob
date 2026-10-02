@@ -348,6 +348,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                       <span className="material-symbols-outlined text-[15px] text-secondary">payments</span>
                       {job.salary}
                     </span>
+                    <span className="px-2.5 py-1 bg-tertiary/15 text-tertiary rounded-lg text-xs font-bold border border-tertiary/25 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[14px]">school</span>
+                      Min {job.minCgpa || (job.minPercentage / 10).toFixed(1)} CGPA ({job.minPercentage}%)
+                    </span>
                     <span className="px-2.5 py-1 bg-surface-container rounded-lg text-xs text-on-surface font-medium">
                       {job.experience}
                     </span>
@@ -355,7 +359,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                       {job.branch}
                     </span>
                     <span className="px-2.5 py-1 bg-surface-container rounded-lg text-xs text-on-surface-variant">
-                      Demo Listing
+                      {job.maxLiveBacklogs === 0 ? '0 Backlogs' : `Max ${job.maxLiveBacklogs || 1} Backlog`}
                     </span>
                   </div>
 

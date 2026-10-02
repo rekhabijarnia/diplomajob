@@ -24,6 +24,7 @@ export const FindJobsScreen: React.FC<FindJobsScreenProps> = ({
   const [selectedBranch, setSelectedBranch] = useState(initialBranch || 'all');
   const [selectedType, setSelectedType] = useState<'all' | 'job' | 'apprentice' | 'internship'>('all');
   const [selectedLocation, setSelectedLocation] = useState('all');
+  const [selectedCgpaCutoff, setSelectedCgpaCutoff] = useState('all');
   const [sortBy, setSortBy] = useState<'latest' | 'salary' | 'cutoff'>('latest');
   const [showSavedOnly, setShowSavedOnly] = useState(false);
 
@@ -47,6 +48,15 @@ export const FindJobsScreen: React.FC<FindJobsScreenProps> = ({
       // Location filter
       if (selectedLocation !== 'all' && !job.location.toLowerCase().includes(selectedLocation.toLowerCase())) {
         return false;
+      }
+
+      // CGPA Cutoff filter
+      if (selectedCgpaCutoff !== 'all') {
+        const maxCutoff = parseFloat(selectedCgpaCutoff);
+        const jobCutoff = job.minCgpa || (job.minPercentage / 10);
+        if (jobCutoff > maxCutoff) {
+          return false;
+        }
       }
 
       // Company initial filter
@@ -76,7 +86,7 @@ export const FindJobsScreen: React.FC<FindJobsScreenProps> = ({
       }
       return 0; // Default order
     });
-  }, [jobs, selectedBranch, selectedType, selectedLocation, searchQuery, sortBy, showSavedOnly, savedJobIds, initialCompany]);
+  }, [jobs, selectedBranch, selectedType, selectedLocation, selectedCgpaCutoff, searchQuery, sortBy, showSavedOnly, savedJobIds, initialCompany]);
 
   const branches = [
     { slug: 'all', label: 'All Branches' },
@@ -227,6 +237,42 @@ export const FindJobsScreen: React.FC<FindJobsScreenProps> = ({
             </button>
           ))}
         </div>
+
+        {/* Row 4: CGPA Cutoff Filter Strip */}
+        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-surface-container text-xs">
+          <span className="text-xs font-bold text-on-surface flex items-center gap-1">
+            <span className="material-symbols-outlined text-[15px] text-primary">school</span>
+            Max Cutoff Requirement:
+          </span>
+          {[
+            { id: 'all', label: 'All Cutoffs' },
+            { id: '6.0', label: '≤ 6.0 CGPA (55%)' },
+            { id: '6.5', label: '≤ 6.5 CGPA (60%)' },
+            { id: '6.8', label: '≤ 6.8 CGPA (65%)' },
+            { id: '7.0', label: '≤ 7.0 CGPA (68%)' },
+          ].map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setSelectedCgpaCutoff(item.id)}
+              className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                selectedCgpaCutoff === item.id
+                  ? 'bg-secondary text-white font-bold shadow-xs'
+                  : 'bg-surface-container hover:bg-surface-container-high text-on-surface-variant'
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+          {selectedCgpaCutoff !== 'all' && (
+            <button
+              onClick={() => setSelectedCgpaCutoff('all')}
+              className="text-xs text-error font-semibold hover:underline ml-2"
+            >
+              Clear Cutoff Filter
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Jobs Listing */}
@@ -305,11 +351,18 @@ export const FindJobsScreen: React.FC<FindJobsScreenProps> = ({
                       <span className="material-symbols-outlined text-[14px] text-secondary">payments</span>
                       {job.salary}
                     </span>
+                    <span className="px-2.5 py-0.5 bg-tertiary/15 text-tertiary rounded-lg text-xs font-bold border border-tertiary/25 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[13px]">school</span>
+                      Min {job.minCgpa || (job.minPercentage / 10).toFixed(1)} CGPA ({job.minPercentage}%)
+                    </span>
                     <span className="px-2.5 py-0.5 bg-surface-container rounded-lg text-xs text-on-surface font-medium">
                       {job.experience}
                     </span>
                     <span className="px-2.5 py-0.5 bg-primary-fixed text-on-primary-fixed rounded-lg text-xs font-semibold">
                       {job.branch}
+                    </span>
+                    <span className="px-2.5 py-0.5 bg-surface-container rounded-lg text-[11px] text-on-surface-variant font-medium">
+                      {job.maxLiveBacklogs === 0 ? '0 Backlogs' : `Max ${job.maxLiveBacklogs || 1} Backlog`}
                     </span>
                     {job.natsApproved && (
                       <span className="px-2.5 py-0.5 bg-secondary-fixed/50 text-secondary rounded-lg text-xs font-bold">
